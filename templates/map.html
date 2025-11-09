@@ -12,6 +12,7 @@
 </head>
 <body>
     <div id="mapContainer"></div>
+    
     <div class="map-header">
         <div class="header-left">
             <a href="/" class="logo-link">
@@ -37,6 +38,14 @@
         </div>
         
         <div class="header-right">
+            <button id="addPlaceBtn" class="icon-btn icon-btn-primary" title="Add Place">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                    <path d="M12 7c-1.1 0-2 .9-2 2h4c0-1.1-.9-2-2-2z"/>
+                </svg>
+                <span class="btn-text">Add Place</span>
+            </button>
+            
             <button id="myLocationBtn" class="icon-btn" title="My Location">
                 <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
@@ -56,6 +65,7 @@
             </a>
         </div>
     </div>
+    
     <div id="infoPanel" class="info-panel">
         <div class="info-content">
             <div class="info-row">
@@ -72,10 +82,116 @@
             </div>
         </div>
     </div>
+    
     <div id="loadingIndicator" class="loading-indicator">
         <div class="spinner"></div>
         <span>Loading location...</span>
     </div>
+    
+    <div id="addPlaceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add a Hidden Gem</h2>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            
+            <form id="addPlaceForm" class="place-form">
+                <div class="form-group">
+                    <label for="placeName">Place Name *</label>
+                    <input type="text" id="placeName" required placeholder="E.g., Aunt Maria's Cafe">
+                </div>
+                
+                <div class="form-group">
+                    <label for="placeCategory">Category *</label>
+                    <select id="placeCategory" required>
+                        <option value="">Select category</option>
+                        <option value="Restaurant">Restaurant</option>
+                        <option value="Cafe">Cafe</option>
+                        <option value="Sweet Shop">Sweet Shop</option>
+                        <option value="Street Food">Street Food</option>
+                        <option value="Bakery">Bakery</option>
+                        <option value="Local Shop">Local Shop</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="placeDescription">Description *</label>
+                    <textarea id="placeDescription" required rows="3" placeholder="What makes this place special?"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="placeAddress">Address *</label>
+                    <input type="text" id="placeAddress" required placeholder="Street address or landmark">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="placeLatitude">Latitude *</label>
+                        <input type="number" id="placeLatitude" step="any" required placeholder="26.8467">
+                    </div>
+                    <div class="form-group">
+                        <label for="placeLongitude">Longitude *</label>
+                        <input type="number" id="placeLongitude" step="any" required placeholder="80.9462">
+                    </div>
+                </div>
+                
+                <button type="button" id="useMapLocation" class="btn-secondary">
+                     Use Current Map Center
+                </button>
+                
+                <div class="form-group">
+                    <label for="placeContact">Contact (Optional)</label>
+                    <input type="text" id="placeContact" placeholder="+91-XXX-XXXXXXX">
+                </div>
+                
+                <div class="form-group">
+                    <label for="placeHours">Opening Hours (Optional)</label>
+                    <input type="text" id="placeHours" placeholder="9:00 AM - 10:00 PM">
+                </div>
+                
+                <div class="form-group">
+                    <label for="placeAddedBy">Your Name (Optional)</label>
+                    <input type="text" id="placeAddedBy" placeholder="Anonymous">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn-submit">Add Place</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="placesSidebar" class="places-sidebar">
+        <div class="sidebar-header">
+            <h3>Discover Places</h3>
+            <button id="closeSidebar" class="close-sidebar">&times;</button>
+        </div>
+        
+        <div class="sidebar-filters">
+            <select id="categoryFilter" class="filter-select">
+                <option value="All">All Categories</option>
+                <option value="Restaurant">Restaurants</option>
+                <option value="Cafe">Cafes</option>
+                <option value="Sweet Shop">Sweet Shops</option>
+                <option value="Street Food">Street Food</option>
+                <option value="Bakery">Bakeries</option>
+                <option value="Local Shop">Local Shops</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        
+        <div id="placesList" class="places-list">
+        </div>
+    </div>
+    
+    <button id="toggleSidebar" class="toggle-sidebar-btn" title="Browse Places">
+        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+        </svg>
+        <span>Places</span>
+    </button>
     
     <script src="{{ url_for('static', filename='js/map.js') }}" defer></script>
 </body>
