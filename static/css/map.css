@@ -410,6 +410,28 @@
     transition: all 0.3s ease;
 }
 
+.form-group select {
+    background: rgba(0, 0, 0, 0.9) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    appearance: none;
+    outline: none;
+}
+
+.form-group select option {
+    background: #000 !important;
+    color: #fff !important;
+}
+
+.form-group select:focus,
+.form-group select:hover {
+    background: rgba(20, 20, 20, 0.95) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
