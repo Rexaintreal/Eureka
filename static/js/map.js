@@ -6,6 +6,7 @@ let currentBasemap;
 let satelliteBasemap;
 let placesData = [];
 let placeMarkers = [];
+let currentBoundaryLayer = null;
 
 const basemaps = {
     street: {
@@ -94,7 +95,6 @@ function addUserMarker(lat, lon) {
     userMarker.bindPopup('<b>Your Location</b>').openPopup();
 }
 
-// Get user's current location
 function getUserLocation() {
     if (!navigator.geolocation) return;
     
@@ -110,7 +110,6 @@ function getUserLocation() {
     );
 }
 
-// Go to user's location
 function goToMyLocation() {
     const loadingIndicator = document.getElementById('loadingIndicator');
     loadingIndicator.classList.add('active');
@@ -136,7 +135,6 @@ function goToMyLocation() {
     );
 }
 
-// Search for a location
 async function searchLocation(query) {
     const loadingIndicator = document.getElementById('loadingIndicator');
     loadingIndicator.classList.add('active');
@@ -167,7 +165,96 @@ async function searchLocation(query) {
     }
 }
 
-// Toggle satellite view
+async function searchAndFilterByLocation(query) {
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    loadingIndicator.classList.add('active');
+    loadingIndicator.querySelector('span').textContent = 'Searching location...';
+    
+    try {
+        const searchResponse = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&polygon_geojson=1`
+        );
+        const searchData = await searchResponse.json();
+        
+        if (searchData && searchData.length > 0) {
+            const result = searchData[0];
+            const lat = parseFloat(result.lat);
+            const lon = parseFloat(result.lon);
+            
+            map.flyTo([lat, lon], 10, { duration: 1.5 });
+            
+            const boundaryResponse = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&polygon_geojson=1&zoom=10`
+            );
+            const boundaryData = await boundaryResponse.json();
+            
+            if (boundaryData.geojson) {
+                drawBoundary(boundaryData.geojson);
+            }
+            
+            filterPlacesByBounds(result.boundingbox);
+            
+            document.getElementById('currentLocationFilter').textContent = result.display_name.split(',')[0];
+            document.getElementById('locationFilterDisplay').style.display = 'flex';
+            
+        } else {
+            alert('Location not found. Try a different search term.');
+        }
+    } catch (error) {
+        console.error('Error searching location:', error);
+        alert('Error searching for location. Please try again.');
+    } finally {
+        loadingIndicator.querySelector('span').textContent = 'Loading location...';
+        loadingIndicator.classList.remove('active');
+    }
+}
+
+function drawBoundary(geojson) {
+    if (currentBoundaryLayer) {
+        map.removeLayer(currentBoundaryLayer);
+    }
+    currentBoundaryLayer = L.geoJSON(geojson, {
+        style: {
+            color: '#FF4444',
+            weight: 3,
+            opacity: 0.8,
+            fillColor: '#FF4444',
+            fillOpacity: 0.1,
+            dashArray: '10, 5'
+        }
+    }).addTo(map);
+    map.fitBounds(currentBoundaryLayer.getBounds(), { padding: [50, 50] });
+}
+
+function filterPlacesByBounds(boundingbox) {
+    if (!boundingbox || boundingbox.length < 4) {
+        displayPlacesOnMap(placesData);
+        displayPlacesList(placesData);
+        return;
+    }
+    
+    const [south, north, west, east] = boundingbox.map(parseFloat);
+    
+    const filtered = placesData.filter(place => {
+        const lat = place.latitude;
+        const lon = place.longitude;
+        return lat >= south && lat <= north && lon >= west && lon <= east;
+    });
+    
+    displayPlacesOnMap(filtered);
+    displayPlacesList(filtered);
+}
+
+function clearLocationFilter() {
+    if (currentBoundaryLayer) {
+        map.removeLayer(currentBoundaryLayer);
+        currentBoundaryLayer = null;
+    }
+    const category = document.getElementById('categoryFilter').value;
+    filterPlaces(category);
+    document.getElementById('locationFilterDisplay').style.display = 'none';
+}
+
 function toggleSatellite() {
     const satelliteBtn = document.getElementById('satelliteBtn');
     const tilePane = map.getPane('tilePane');
@@ -232,7 +319,7 @@ function displayPlacesList(places) {
     const placesList = document.getElementById('placesList');
     
     if (places.length === 0) {
-        placesList.innerHTML = '<p style="color: rgba(255,255,255,0.5); text-align: center; padding: 2rem;">No places found. Be the first to add one!</p>';
+        placesList.innerHTML = '<p style="color: rgba(255,255,255,0.5); text-align: center; padding: 2rem;">No places found in this area. Be the first to add one!</p>';
         return;
     }
     
@@ -257,14 +344,19 @@ function displayPlacesList(places) {
 }
 
 function filterPlaces(category) {
-    if (category === 'All') {
-        displayPlacesOnMap(placesData);
-        displayPlacesList(placesData);
-    } else {
-        const filtered = placesData.filter(p => p.category === category);
-        displayPlacesOnMap(filtered);
-        displayPlacesList(filtered);
+    let filtered = placesData;
+    if (category && category !== 'All') {
+        filtered = filtered.filter(p => p.category === category);
     }
+    if (currentBoundaryLayer) {
+        const bounds = currentBoundaryLayer.getBounds();
+        filtered = filtered.filter(place => {
+            return bounds.contains([place.latitude, place.longitude]);
+        });
+    }
+    
+    displayPlacesOnMap(filtered);
+    displayPlacesList(filtered);
 }
 
 async function submitPlace(formData) {
@@ -299,7 +391,6 @@ async function submitPlace(formData) {
 
 document.addEventListener('DOMContentLoaded', () => {
     initMap();
-    
     document.getElementById('searchBtn').addEventListener('click', () => {
         const query = document.getElementById('searchInput').value.trim();
         if (query) searchLocation(query);
@@ -311,6 +402,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (query) searchLocation(query);
         }
     });
+    document.getElementById('locationSearchBtn').addEventListener('click', () => {
+        const query = document.getElementById('locationSearchInput').value.trim();
+        if (query) searchAndFilterByLocation(query);
+    });
+    
+    document.getElementById('locationSearchInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            const query = e.target.value.trim();
+            if (query) searchAndFilterByLocation(query);
+        }
+    });
+    
+    document.getElementById('clearLocationFilter').addEventListener('click', clearLocationFilter);
     
     document.getElementById('myLocationBtn').addEventListener('click', goToMyLocation);
     document.getElementById('satelliteBtn').addEventListener('click', toggleSatellite);
