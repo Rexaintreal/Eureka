@@ -239,6 +239,17 @@
     font-family: 'Inter', sans-serif;
 }
 
+.leaflet-tile-pane.street-view .leaflet-layer,
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out,
+.leaflet-control-attribution {
+    filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+.leaflet-tile-pane.satellite-view .leaflet-layer {
+    filter: none;
+}
+
 .leaflet-control-zoom {
     border: none !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;

@@ -56,6 +56,8 @@ function initMap() {
         maxZoom: 19
     });
     
+    map.getPane('tilePane').classList.add('street-view');
+    
     map.on('move', updateInfoPanel);
     map.on('zoom', updateInfoPanel);
     updateInfoPanel();
@@ -168,16 +170,21 @@ async function searchLocation(query) {
 // Toggle satellite view
 function toggleSatellite() {
     const satelliteBtn = document.getElementById('satelliteBtn');
+    const tilePane = map.getPane('tilePane');
     
     if (isSatelliteView) {
         map.removeLayer(satelliteBasemap);
         currentBasemap.addTo(map);
         satelliteBtn.classList.remove('active');
+        tilePane.classList.remove('satellite-view');
+        tilePane.classList.add('street-view');
         isSatelliteView = false;
     } else {
         map.removeLayer(currentBasemap);
         satelliteBasemap.addTo(map);
         satelliteBtn.classList.add('active');
+        tilePane.classList.remove('street-view');
+        tilePane.classList.add('satellite-view');
         isSatelliteView = true;
     }
 }
