@@ -7,6 +7,7 @@ let satelliteBasemap;
 let placesData = [];
 let placeMarkers = [];
 let currentBoundaryLayer = null;
+let selectedPlaceId = null;
 
 const basemaps = {
     street: {
@@ -19,17 +20,28 @@ const basemaps = {
     }
 };
 
-const placeIcon = L.icon({
-    iconUrl: 'data:image/svg+xml;base64,' + btoa(`
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#FF4444" stroke="#fff" stroke-width="2"/>
-            <circle cx="12" cy="9" r="2.5" fill="#fff"/>
-        </svg>
-    `),
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32]
-});
+function getPlaceIcon(place) {
+    let color = '#FF4444';
+    
+    if (place.hidden) {
+        color = '#808080';
+    } else if (place.verified) {
+        color = '#4CAF50';
+    }
+    
+    return L.icon({
+        iconUrl: 'data:image/svg+xml;base64,' + btoa(`
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="${color}" stroke="#fff" stroke-width="2"/>
+                <circle cx="12" cy="9" r="2.5" fill="#fff"/>
+                ${place.verified ? '<path d="M12 6l1.5 3 3.5.5-2.5 2.5.5 3.5-3-1.5-3 1.5.5-3.5L7 9.5l3.5-.5z" fill="#fff"/>' : ''}
+            </svg>
+        `),
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+    });
+}
 
 function initMap() {
     const storedLat = sessionStorage.getItem('userLat');
@@ -296,17 +308,30 @@ function displayPlacesOnMap(places) {
     placeMarkers = [];
     
     places.forEach(place => {
-        const marker = L.marker([place.latitude, place.longitude], { icon: placeIcon }).addTo(map);
+        const marker = L.marker([place.latitude, place.longitude], { 
+            icon: getPlaceIcon(place),
+            opacity: place.hidden ? 0.5 : 1
+        }).addTo(map);
+        
+        const verifiedBadge = place.verified ? '<span style="color: #4CAF50; font-weight: bold;"><i class="fas fa-check-circle"></i> Verified</span>' : '';
+        const hiddenBadge = place.hidden ? '<span style="color: #808080; font-weight: bold;"><i class="fas fa-exclamation-triangle"></i> Unverified</span>' : '';
         
         const popupContent = `
             <div style="font-family: Inter, sans-serif; min-width: 200px;">
                 <h3 style="margin: 0 0 0.5rem 0; font-size: 1rem; color: #000;">${place.name}</h3>
+                ${verifiedBadge || hiddenBadge ? `<p style="margin: 0 0 0.5rem 0;">${verifiedBadge}${hiddenBadge}</p>` : ''}
                 <p style="margin: 0 0 0.5rem 0; font-size: 0.85rem; color: #666;">${place.description}</p>
-                <p style="margin: 0; font-size: 0.8rem; color: #999;">
+                <p style="margin: 0 0 0.5rem 0; font-size: 0.8rem; color: #999;">
                     <strong>Category:</strong> ${place.category}<br>
                     <strong>Address:</strong> ${place.address}
                 </p>
-                ${place.openingHours ? `<p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; color: #666;">⏰ ${place.openingHours}</p>` : ''}
+                <div style="display: flex; gap: 1rem; margin: 0.5rem 0; font-size: 0.8rem;">
+                    <span><i class="fas fa-thumbs-up"></i> ${place.upvotes || 0}</span>
+                    <span><i class="fas fa-thumbs-down"></i> ${place.downvotes || 0}</span>
+                </div>
+                <button onclick="showPlaceDetails('${place.id}')" style="background: #000; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; margin-top: 0.5rem; width: 100%;">
+                    View Details
+                </button>
             </div>
         `;
         
@@ -323,24 +348,141 @@ function displayPlacesList(places) {
         return;
     }
     
-    placesList.innerHTML = places.map(place => `
-        <div class="place-card" data-lat="${place.latitude}" data-lon="${place.longitude}">
+    placesList.innerHTML = places.map(place => {
+        const verifiedBadge = place.verified ? '<span class="verified-badge"><i class="fas fa-check-circle"></i></span>' : '';
+        const hiddenClass = place.hidden ? 'place-hidden' : '';
+        
+        return `
+        <div class="place-card ${hiddenClass}" data-place-id="${place.id}">
             <div class="place-card-header">
-                <h4>${place.name}</h4>
+                <h4>${place.name} ${verifiedBadge}</h4>
                 <span class="place-category">${place.category}</span>
             </div>
             <p>${place.description}</p>
-            <p class="place-address">📍 ${place.address}</p>
+            <p class="place-address"><i class="fas fa-map-marker-alt"></i> ${place.address}</p>
+            <div class="place-stats">
+                <span><i class="fas fa-thumbs-up"></i> ${place.upvotes || 0}</span>
+                <span><i class="fas fa-thumbs-down"></i> ${place.downvotes || 0}</span>
+            </div>
         </div>
-    `).join('');
+    `}).join('');
     
     document.querySelectorAll('.place-card').forEach(card => {
         card.addEventListener('click', () => {
-            const lat = parseFloat(card.dataset.lat);
-            const lon = parseFloat(card.dataset.lon);
-            map.flyTo([lat, lon], 16, { duration: 1.5 });
+            const placeId = card.dataset.placeId;
+            showPlaceDetails(placeId);
         });
     });
+}
+
+async function showPlaceDetails(placeId) {
+    selectedPlaceId = placeId;
+    
+    try {
+        const response = await fetch(`/api/places/${placeId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const place = data.place;
+            displayPlaceDetails(place);
+            
+            const detailsSidebar = document.getElementById('placeDetailsSidebar');
+            if (detailsSidebar) {
+                detailsSidebar.classList.add('active');
+            }
+            
+            map.flyTo([place.latitude, place.longitude], 16, { duration: 1.5 });
+        }
+    } catch (error) {
+        console.error('Error loading place details:', error);
+        alert('Error loading place details');
+    }
+}
+
+function displayPlaceDetails(place) {
+    const detailsContent = document.getElementById('placeDetailsContent');
+    
+    if (!detailsContent) {
+        console.error('Place details content element not found');
+        return;
+    }
+    
+    const verifiedBadge = place.verified ? '<span class="verified-badge-large"><i class="fas fa-check-circle"></i> Verified Place</span>' : '';
+    const hiddenBadge = place.hidden ? '<span class="hidden-badge-large"><i class="fas fa-exclamation-triangle"></i> Needs Verification</span>' : '';
+    
+    const upvoteActive = place.userVote === 'upvote' ? 'active' : '';
+    const downvoteActive = place.userVote === 'downvote' ? 'active' : '';
+    
+    detailsContent.innerHTML = `
+        <div class="place-detail-header">
+            <h2>${place.name}</h2>
+            ${verifiedBadge}${hiddenBadge}
+        </div>
+        
+        <div class="place-detail-category">${place.category}</div>
+        
+        <div class="place-detail-description">
+            <p>${place.description}</p>
+        </div>
+        
+        <div class="place-detail-info">
+            <div class="info-item">
+                <strong><i class="fas fa-map-marker-alt"></i> Address:</strong> ${place.address}
+            </div>
+            ${place.contact ? `<div class="info-item"><strong><i class="fas fa-phone"></i> Contact:</strong> ${place.contact}</div>` : ''}
+            ${place.openingHours ? `<div class="info-item"><strong><i class="fas fa-clock"></i> Hours:</strong> ${place.openingHours}</div>` : ''}
+            <div class="info-item">
+                <strong>Added by:</strong> ${place.addedBy} on ${place.addedDate}
+            </div>
+        </div>
+        
+        <div class="place-voting">
+            <button class="vote-btn upvote-btn ${upvoteActive}" onclick="votePlace('${place.id}', 'upvote')">
+                <i class="fas fa-thumbs-up"></i> Upvote (${place.upvotes || 0})
+            </button>
+            <button class="vote-btn downvote-btn ${downvoteActive}" onclick="votePlace('${place.id}', 'downvote')">
+                <i class="fas fa-thumbs-down"></i> Downvote (${place.downvotes || 0})
+            </button>
+        </div>
+    `;
+}
+
+async function votePlace(placeId, voteType) {
+    try {
+        const response = await fetch(`/api/places/${placeId}/vote`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: voteType })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showPlaceDetails(placeId);
+            loadPlaces();
+        } else {
+            alert('Error voting: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error voting:', error);
+        alert('Error submitting vote');
+    }
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    
+    return date.toLocaleDateString();
 }
 
 function filterPlaces(category) {
@@ -374,7 +516,7 @@ async function submitPlace(formData) {
         const data = await response.json();
         
         if (data.success) {
-            alert('🎉 Place added successfully! Thank you for contributing!');
+            alert('Place added successfully! Thank you for contributing!');
             document.getElementById('addPlaceModal').classList.remove('active');
             document.getElementById('addPlaceForm').reset();
             loadPlaces();
@@ -389,88 +531,150 @@ async function submitPlace(formData) {
     }
 }
 
+window.showPlaceDetails = showPlaceDetails;
+window.votePlace = votePlace;
+
 document.addEventListener('DOMContentLoaded', () => {
     initMap();
-    document.getElementById('searchBtn').addEventListener('click', () => {
-        const query = document.getElementById('searchInput').value.trim();
-        if (query) searchLocation(query);
-    });
     
-    document.getElementById('searchInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            const query = e.target.value.trim();
+    const searchBtn = document.getElementById('searchBtn');
+    const searchInput = document.getElementById('searchInput');
+    const locationSearchBtn = document.getElementById('locationSearchBtn');
+    const locationSearchInput = document.getElementById('locationSearchInput');
+    const clearLocationFilterBtn = document.getElementById('clearLocationFilter');
+    const myLocationBtn = document.getElementById('myLocationBtn');
+    const satelliteBtn = document.getElementById('satelliteBtn');
+    const addPlaceBtn = document.getElementById('addPlaceBtn');
+    const closeModal = document.getElementById('closeModal');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const useMapLocation = document.getElementById('useMapLocation');
+    const addPlaceForm = document.getElementById('addPlaceForm');
+    const toggleSidebarBtn = document.getElementById('toggleSidebar');
+    const closeSidebarBtn = document.getElementById('closeSidebar');
+    const closePlaceDetails = document.getElementById('closePlaceDetails');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const addPlaceModal = document.getElementById('addPlaceModal');
+    
+    if (searchBtn) {
+        searchBtn.addEventListener('click', () => {
+            const query = searchInput.value.trim();
             if (query) searchLocation(query);
-        }
-    });
-    document.getElementById('locationSearchBtn').addEventListener('click', () => {
-        const query = document.getElementById('locationSearchInput').value.trim();
-        if (query) searchAndFilterByLocation(query);
-    });
+        });
+    }
     
-    document.getElementById('locationSearchInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            const query = e.target.value.trim();
+    if (searchInput) {
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const query = e.target.value.trim();
+                if (query) searchLocation(query);
+            }
+        });
+    }
+    
+    if (locationSearchBtn) {
+        locationSearchBtn.addEventListener('click', () => {
+            const query = locationSearchInput.value.trim();
             if (query) searchAndFilterByLocation(query);
-        }
-    });
+        });
+    }
     
-    document.getElementById('clearLocationFilter').addEventListener('click', clearLocationFilter);
+    if (locationSearchInput) {
+        locationSearchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const query = e.target.value.trim();
+                if (query) searchAndFilterByLocation(query);
+            }
+        });
+    }
     
-    document.getElementById('myLocationBtn').addEventListener('click', goToMyLocation);
-    document.getElementById('satelliteBtn').addEventListener('click', toggleSatellite);
+    if (clearLocationFilterBtn) {
+        clearLocationFilterBtn.addEventListener('click', clearLocationFilter);
+    }
     
-    document.getElementById('addPlaceBtn').addEventListener('click', () => {
-        document.getElementById('addPlaceModal').classList.add('active');
-    });
+    if (myLocationBtn) {
+        myLocationBtn.addEventListener('click', goToMyLocation);
+    }
     
-    document.getElementById('closeModal').addEventListener('click', () => {
-        document.getElementById('addPlaceModal').classList.remove('active');
-    });
+    if (satelliteBtn) {
+        satelliteBtn.addEventListener('click', toggleSatellite);
+    }
     
-    document.getElementById('cancelBtn').addEventListener('click', () => {
-        document.getElementById('addPlaceModal').classList.remove('active');
-    });
+    if (addPlaceBtn) {
+        addPlaceBtn.addEventListener('click', () => {
+            addPlaceModal.classList.add('active');
+        });
+    }
     
-    document.getElementById('useMapLocation').addEventListener('click', () => {
-        const center = map.getCenter();
-        document.getElementById('placeLatitude').value = center.lat.toFixed(6);
-        document.getElementById('placeLongitude').value = center.lng.toFixed(6);
-    });
+    if (closeModal) {
+        closeModal.addEventListener('click', () => {
+            addPlaceModal.classList.remove('active');
+        });
+    }
     
-    document.getElementById('addPlaceForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        const formData = {
-            name: document.getElementById('placeName').value,
-            category: document.getElementById('placeCategory').value,
-            description: document.getElementById('placeDescription').value,
-            address: document.getElementById('placeAddress').value,
-            latitude: document.getElementById('placeLatitude').value,
-            longitude: document.getElementById('placeLongitude').value,
-            contact: document.getElementById('placeContact').value,
-            openingHours: document.getElementById('placeHours').value,
-            addedBy: document.getElementById('placeAddedBy').value || 'Anonymous',
-            tags: []
-        };
-        
-        submitPlace(formData);
-    });
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            addPlaceModal.classList.remove('active');
+        });
+    }
     
-    document.getElementById('toggleSidebar').addEventListener('click', () => {
-        document.getElementById('placesSidebar').classList.toggle('active');
-    });
+    if (useMapLocation) {
+        useMapLocation.addEventListener('click', () => {
+            const center = map.getCenter();
+            document.getElementById('placeLatitude').value = center.lat.toFixed(6);
+            document.getElementById('placeLongitude').value = center.lng.toFixed(6);
+        });
+    }
     
-    document.getElementById('closeSidebar').addEventListener('click', () => {
-        document.getElementById('placesSidebar').classList.remove('active');
-    });
+    if (addPlaceForm) {
+        addPlaceForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('placeName').value,
+                category: document.getElementById('placeCategory').value,
+                description: document.getElementById('placeDescription').value,
+                address: document.getElementById('placeAddress').value,
+                latitude: document.getElementById('placeLatitude').value,
+                longitude: document.getElementById('placeLongitude').value,
+                contact: document.getElementById('placeContact').value,
+                openingHours: document.getElementById('placeHours').value,
+                addedBy: document.getElementById('placeAddedBy').value || 'Anonymous',
+                tags: []
+            };
+            
+            submitPlace(formData);
+        });
+    }
     
-    document.getElementById('categoryFilter').addEventListener('change', (e) => {
-        filterPlaces(e.target.value);
-    });
+    if (toggleSidebarBtn) {
+        toggleSidebarBtn.addEventListener('click', () => {
+            document.getElementById('placesSidebar').classList.toggle('active');
+        });
+    }
     
-    document.getElementById('addPlaceModal').addEventListener('click', (e) => {
-        if (e.target.id === 'addPlaceModal') {
-            document.getElementById('addPlaceModal').classList.remove('active');
-        }
-    });
+    if (closeSidebarBtn) {
+        closeSidebarBtn.addEventListener('click', () => {
+            document.getElementById('placesSidebar').classList.remove('active');
+        });
+    }
+    
+    if (closePlaceDetails) {
+        closePlaceDetails.addEventListener('click', () => {
+            document.getElementById('placeDetailsSidebar').classList.remove('active');
+        });
+    }
+    
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', (e) => {
+            filterPlaces(e.target.value);
+        });
+    }
+    
+    if (addPlaceModal) {
+        addPlaceModal.addEventListener('click', (e) => {
+            if (e.target.id === 'addPlaceModal') {
+                addPlaceModal.classList.remove('active');
+            }
+        });
+    }
 });
