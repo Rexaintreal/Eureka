@@ -471,6 +471,11 @@ function displayPlaceDetails(place) {
                 <strong>Added by:</strong> ${place.addedBy} on ${place.addedDate}
             </div>
         </div>
+        <div class="place-actions" style="margin: 1.5rem 0;">
+            <button class="btn-edit-place" onclick="openEditModal('${place.id}')">
+                <i class="fas fa-edit"></i> Edit Place
+            </button>
+        </div>
         
         <div class="place-voting">
             <button class="vote-btn upvote-btn ${upvoteActive}" onclick="votePlace('${place.id}', 'upvote')">
@@ -497,6 +502,56 @@ function displayPlaceDetails(place) {
         });
     }
 }
+
+function openEditModal(placeId) {
+    const place = placesData.find(p => p.id === placeId);
+    if (!place) return;
+    
+    document.getElementById('editPlaceId').value = place.id;
+    document.getElementById('editPlaceName').value = place.name;
+    document.getElementById('editPlaceCategory').value = place.category;
+    document.getElementById('editPlaceDescription').value = place.description;
+    document.getElementById('editPlaceAddress').value = place.address;
+    document.getElementById('editPlaceLatitude').value = place.latitude;
+    document.getElementById('editPlaceLongitude').value = place.longitude;
+    document.getElementById('editPlaceContact').value = place.contact || '';
+    document.getElementById('editPlaceHours').value = place.openingHours || '';
+    
+    document.getElementById('editPlaceModal').classList.add('active');
+}
+
+async function submitEditPlace(formData, placeId) {
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    loadingIndicator.querySelector('span').textContent = 'Updating place...';
+    loadingIndicator.classList.add('active');
+    
+    try {
+        const response = await fetch(`/api/places/${placeId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification('Place updated successfully!', 'success');
+            document.getElementById('editPlaceModal').classList.remove('active');
+            document.getElementById('editPlaceForm').reset();
+            await loadPlaces();
+            await showPlaceDetails(placeId);
+        } else {
+            showNotification('Error updating place: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showNotification('Error updating place. Please try again.', 'error');
+    } finally {
+        loadingIndicator.querySelector('span').textContent = 'Loading location...';
+        loadingIndicator.classList.remove('active');
+    }
+}
+
+window.openEditModal = openEditModal;
 
 function escapeHtml(text) {
     const div = document.createElement('div');
@@ -715,7 +770,51 @@ document.addEventListener('DOMContentLoaded', () => {
     const closePlaceDetails = document.getElementById('closePlaceDetails');
     const categoryFilter = document.getElementById('categoryFilter');
     const addPlaceModal = document.getElementById('addPlaceModal');
+    const editPlaceModal = document.getElementById('editPlaceModal');
+    const closeEditModal = document.getElementById('closeEditModal');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const editPlaceForm = document.getElementById('editPlaceForm');
     
+
+    if (closeEditModal) {
+        closeEditModal.addEventListener('click', () => {
+            editPlaceModal.classList.remove('active');
+        });
+    }
+
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', () => {
+            editPlaceModal.classList.remove('active');
+        });
+    }
+
+    if (editPlaceForm) {
+        editPlaceForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const placeId = document.getElementById('editPlaceId').value;
+            const formData = {
+                name: document.getElementById('editPlaceName').value,
+                category: document.getElementById('editPlaceCategory').value,
+                description: document.getElementById('editPlaceDescription').value,
+                address: document.getElementById('editPlaceAddress').value,
+                latitude: document.getElementById('editPlaceLatitude').value,
+                longitude: document.getElementById('editPlaceLongitude').value,
+                contact: document.getElementById('editPlaceContact').value,
+                openingHours: document.getElementById('editPlaceHours').value
+            };
+            
+            submitEditPlace(formData, placeId);
+        });
+    }
+
+    if (editPlaceModal) {
+        editPlaceModal.addEventListener('click', (e) => {
+            if (e.target.id === 'editPlaceModal') {
+                editPlaceModal.classList.remove('active');
+            }
+        });
+    }
     if (searchBtn) {
         searchBtn.addEventListener('click', () => {
             const query = searchInput.value.trim();
@@ -838,4 +937,5 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    
 });

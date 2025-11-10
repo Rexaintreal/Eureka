@@ -163,6 +163,73 @@
             </form>
         </div>
     </div>
+    <div id="editPlaceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Place</h2>
+                <button class="close-modal" id="closeEditModal">&times;</button>
+            </div>
+            
+            <form id="editPlaceForm" class="place-form">
+                <input type="hidden" id="editPlaceId">
+                
+                <div class="form-group">
+                    <label for="editPlaceName">Place Name *</label>
+                    <input type="text" id="editPlaceName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editPlaceCategory">Category *</label>
+                    <select id="editPlaceCategory" required>
+                        <option value="">Select category</option>
+                        <option value="Restaurant">Restaurant</option>
+                        <option value="Cafe">Cafe</option>
+                        <option value="Sweet Shop">Sweet Shop</option>
+                        <option value="Street Food">Street Food</option>
+                        <option value="Bakery">Bakery</option>
+                        <option value="Local Shop">Local Shop</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editPlaceDescription">Description *</label>
+                    <textarea id="editPlaceDescription" required rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editPlaceAddress">Address *</label>
+                    <input type="text" id="editPlaceAddress" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editPlaceLatitude">Latitude *</label>
+                        <input type="number" id="editPlaceLatitude" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPlaceLongitude">Longitude *</label>
+                        <input type="number" id="editPlaceLongitude" step="any" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editPlaceContact">Contact (Optional)</label>
+                    <input type="text" id="editPlaceContact">
+                </div>
+                
+                <div class="form-group">
+                    <label for="editPlaceHours">Opening Hours (Optional)</label>
+                    <input type="text" id="editPlaceHours">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="cancelEditBtn">Cancel</button>
+                    <button type="submit" class="btn-submit">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <div id="reportModal" class="modal">
         <div class="report-modal-content">
             <div class="modal-header">

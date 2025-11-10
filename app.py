@@ -147,6 +147,32 @@ def add_place():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/places/<place_id>', methods=['PUT'])
+def update_place(place_id):
+    try:
+        data = request.json
+        places = read_places()
+        place_index = next((i for i, p in enumerate(places) if p['id'] == place_id), None)
+        if place_index is None:
+            return jsonify({'success': False, 'error': 'Place not found'}), 404
+        
+        places[place_index]['name'] = data.get('name', places[place_index]['name'])
+        places[place_index]['category'] = data.get('category', places[place_index]['category'])
+        places[place_index]['description'] = data.get('description', places[place_index]['description'])
+        places[place_index]['address'] = data.get('address', places[place_index]['address'])
+        places[place_index]['latitude'] = float(data.get('latitude', places[place_index]['latitude']))
+        places[place_index]['longitude'] = float(data.get('longitude', places[place_index]['longitude']))
+        places[place_index]['contact'] = data.get('contact', places[place_index].get('contact', ''))
+        places[place_index]['openingHours'] = data.get('openingHours', places[place_index].get('openingHours', ''))
+        
+        if write_places(places):
+            return jsonify({'success': True, 'place': places[place_index]})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to save changes'}), 500
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/places/<place_id>/vote', methods=['POST'])
 def vote_place(place_id):
     try:
