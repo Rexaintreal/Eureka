@@ -2,46 +2,14 @@
   "place_002": [
     {
       "id": "comment_00001",
-      "text": "Totally Worth it!",
+      "text": "Really nice place!",
       "author": "Anonymous",
       "ip": "127.0.0.1",
-      "timestamp": "2025-11-10T12:41:02.651394",
+      "timestamp": "2025-11-10T15:52:50.886243",
       "reports": [
+        "192.168.1.2",
+        "192.168.1.3",
         "127.0.0.1"
-      ],
-      "flagged": false
-    },
-    {
-      "id": "comment_00002",
-      "text": "Best place in hazratganj must try",
-      "author": "Anonymous",
-      "ip": "127.0.0.1",
-      "timestamp": "2025-11-10T12:41:18.189478",
-      "reports": [],
-      "flagged": false
-    },
-    {
-      "id": "comment_00003",
-      "text": "i had a very great experience",
-      "author": "Anonymous",
-      "ip": "127.0.0.1",
-      "timestamp": "2025-11-10T12:41:30.132660",
-      "reports": [],
-      "flagged": false
-    }
-  ],
-  "place_001": [
-    {
-      "id": "comment_00001",
-      "text": "vzxcvzxcvxc",
-      "author": "Anonymous",
-      "ip": "127.0.0.1",
-      "timestamp": "2025-11-10T12:49:12.084105",
-      "reports": [
-        "127.0.0.1",
-        "127.0.1.1",
-        "127.0.2.1",
-        "127.0.3.1"
       ],
       "flagged": true
     }

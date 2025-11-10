@@ -554,18 +554,21 @@ async function confirmReport(commentId) {
         
         if (data.success) {
             if (data.flagged) {
-                showNotification('Comment has been flagged and will no longer be visible', 'success');
+                showNotification('Comment has been flagged and hidden due to multiple reports', 'success');
             } else {
-                showNotification('Comment reported successfully', 'success');
+                showNotification(`Comment reported successfully (${data.reportCount}/3 reports)`, 'success');
             }
-            showPlaceDetails(selectedPlaceId);
+            if (selectedPlaceId) {
+                await showPlaceDetails(selectedPlaceId);
+            }
+            await loadPlaces();
         } else {
             showNotification('Error: ' + data.error, 'error');
         }
     } catch (error) {
         console.error('Error reporting comment:', error);
         closeReportModal();
-        showNotification('Error reporting comment', 'error');
+        showNotification('Error reporting comment. Please try again.', 'error');
     }
 }
 

@@ -297,17 +297,24 @@ def report_comment(comment_id):
     try:
         client_ip = get_client_ip()
         comments_data = read_comments()
+        
         comment_found = False
+        updated_place_id = None
+        
         for place_id, place_comments in comments_data.items():
             for comment in place_comments:
                 if comment['id'] == comment_id:
                     comment_found = True
+                    updated_place_id = place_id
+                    
                     if 'reports' not in comment:
                         comment['reports'] = []
                     
                     if client_ip in comment['reports']:
                         return jsonify({'success': False, 'error': 'You have already reported this comment'}), 400
+                    
                     comment['reports'].append(client_ip)
+                    
                     if len(comment['reports']) >= 3:
                         comment['flagged'] = True
                     
@@ -315,7 +322,8 @@ def report_comment(comment_id):
                         return jsonify({
                             'success': True,
                             'reportCount': len(comment['reports']),
-                            'flagged': comment.get('flagged', False)
+                            'flagged': comment.get('flagged', False),
+                            'placeId': updated_place_id  
                         })
                     else:
                         return jsonify({'success': False, 'error': 'Failed to save report'}), 500
@@ -325,8 +333,9 @@ def report_comment(comment_id):
             
     except Exception as e:
         print(f"Error in report_comment: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
-
 @app.route('/api/places/search', methods=['GET'])
 def search_places():
     query = request.args.get('q', '').lower()
