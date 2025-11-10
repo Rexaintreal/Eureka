@@ -3,232 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eureka - Map</title>
+    <title>Eureka</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/logo.ico') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/map.css') }}">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
-    <div id="mapContainer"></div>
-    
-    <div class="map-header">
-        <div class="header-left">
-            <a href="/" class="logo-link">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Eureka" class="header-logo">
-                <span class="header-title">Eureka</span>
-            </a>
-        </div>
+    <div class="landing-container">
+        <div id="map"></div>
         
-        <div class="header-center">
-            <div class="search-container">
-                <input 
-                    type="text" 
-                    id="searchInput" 
-                    placeholder="Search location"
-                    autocomplete="off"
-                >
-                <button id="searchBtn" class="search-btn">
-                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-                    </svg>
-                </button>
+        <div class="content">
+            <div class="title-container">
+                <div class="logo">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Eureka Logo">
+                </div>
+                <h1>Eureka</h1>
             </div>
+            <p class="tagline">
+                Discover cool underrated spots and local shops that don't show up on regular apps
+                This project was made for <a href="https://foodie.hackclub.com/" target="_blank" rel="noopener">Foodie YSWS</a>
+            </p>
+            <a href="/map" class="cta-button" id="exploreBtn">Explore Now</a>
         </div>
-        
-        <div class="header-right">
-            <button id="addPlaceBtn" class="icon-btn icon-btn-primary" title="Add Place">
-                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                    <path d="M12 7c-1.1 0-2 .9-2 2h4c0-1.1-.9-2-2-2z"/>
+
+        <div class="footer">
+            <a href="https://github.com/Rexaintreal/Eureka" target="_blank" rel="noopener">
+                <svg fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                 </svg>
-                <span class="btn-text">Add Place</span>
-            </button>
-            
-            <button id="myLocationBtn" class="icon-btn" title="My Location">
-                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+                GitHub
+            </a>
+            <a href="https://saurabhcodesawfully.pythonanywhere.com/" target="_blank" rel="noopener">
+                <svg fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14 3v2h3.59L8.79 15.79l1.41 1.41L19 7.41V11h2V3zM19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7z"/>
                 </svg>
-            </button>
-            
-            <button id="satelliteBtn" class="icon-btn" title="Toggle Satellite">
-                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-                </svg>
-            </button>
-            
-            <a href="/feedback" class="icon-btn" title="Feedback">
-                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                Portfolio
+            </a>
+            <a href="/feedback">
+                <svg fill="currentColor" viewBox="0 0 24 24">
                     <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
                 </svg>
+                Feedback
             </a>
         </div>
     </div>
-    
-    <div id="infoPanel" class="info-panel">
-        <div class="info-content">
-            <div class="info-row">
-                <span class="info-label">Latitude:</span>
-                <span id="latValue">--</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Longitude:</span>
-                <span id="lonValue">--</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Zoom:</span>
-                <span id="zoomValue">--</span>
-            </div>
-        </div>
-    </div>
-    
-    <div id="loadingIndicator" class="loading-indicator">
-        <div class="spinner"></div>
-        <span>Loading location...</span>
-    </div>
-    
-    <div id="addPlaceModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Add a Hidden Gem</h2>
-                <button class="close-modal" id="closeModal">&times;</button>
-            </div>
-            
-            <form id="addPlaceForm" class="place-form">
-                <div class="form-group">
-                    <label for="placeName">Place Name *</label>
-                    <input type="text" id="placeName" required placeholder="E.g., Aunt Maria's Cafe">
-                </div>
-                
-                <div class="form-group">
-                    <label for="placeCategory">Category *</label>
-                    <select id="placeCategory" required>
-                        <option value="">Select category</option>
-                        <option value="Restaurant">Restaurant</option>
-                        <option value="Cafe">Cafe</option>
-                        <option value="Sweet Shop">Sweet Shop</option>
-                        <option value="Street Food">Street Food</option>
-                        <option value="Bakery">Bakery</option>
-                        <option value="Local Shop">Local Shop</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="placeDescription">Description *</label>
-                    <textarea id="placeDescription" required rows="3" placeholder="What makes this place special?"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="placeAddress">Address *</label>
-                    <input type="text" id="placeAddress" required placeholder="Street address or landmark">
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="placeLatitude">Latitude *</label>
-                        <input type="number" id="placeLatitude" step="any" required placeholder="26.8467">
-                    </div>
-                    <div class="form-group">
-                        <label for="placeLongitude">Longitude *</label>
-                        <input type="number" id="placeLongitude" step="any" required placeholder="80.9462">
-                    </div>
-                </div>
-                
-                <button type="button" id="useMapLocation" class="btn-secondary">
-                     Use Current Map Center
-                </button>
-                
-                <div class="form-group">
-                    <label for="placeContact">Contact (Optional)</label>
-                    <input type="text" id="placeContact" placeholder="+91-XXX-XXXXXXX">
-                </div>
-                
-                <div class="form-group">
-                    <label for="placeHours">Opening Hours (Optional)</label>
-                    <input type="text" id="placeHours" placeholder="9:00 AM - 10:00 PM">
-                </div>
-                
-                <div class="form-group">
-                    <label for="placeAddedBy">Your Name (Optional)</label>
-                    <input type="text" id="placeAddedBy" placeholder="Anonymous">
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn-cancel" id="cancelBtn">Cancel</button>
-                    <button type="submit" class="btn-submit">Add Place</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <div id="placesSidebar" class="places-sidebar">
-        <div class="sidebar-header">
-            <h3>Discover Places</h3>
-            <button id="closeSidebar" class="close-sidebar">&times;</button>
-        </div>
-        
-        <div class="sidebar-filters">
-            <div class="filter-group">
-                <label class="filter-label">Filter by Location</label>
-                <div class="location-search-container">
-                    <input 
-                        type="text" 
-                        id="locationSearchInput" 
-                        class="location-search-input"
-                    >
-                    <button id="locationSearchBtn" class="location-search-btn">
-                        <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-                        </svg>
-                    </button>
-                </div>
-                <div id="locationFilterDisplay" class="location-filter-active" style="display: none;">
-                    <div class="filter-tag">
-                        <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-                        </svg>
-                        <span id="currentLocationFilter">Location</span>
-                        <button id="clearLocationFilter" class="clear-filter-btn">×</button>
-                    </div>
-                </div>
-            </div>            
-            <div class="filter-group">
-                <label class="filter-label">Filter by Category</label>
-                <select id="categoryFilter" class="filter-select">
-                    <option value="All">All Categories</option>
-                    <option value="Restaurant">Restaurants</option>
-                    <option value="Cafe">Cafes</option>
-                    <option value="Sweet Shop">Sweet Shops</option>
-                    <option value="Street Food">Street Food</option>
-                    <option value="Bakery">Bakeries</option>
-                    <option value="Local Shop">Local Shops</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-        </div>
-        
-        <div id="placesList" class="places-list"></div>
-    </div>
-    
-    <div id="placeDetailsSidebar" class="place-details-sidebar">
-        <div class="sidebar-header">
-            <h3>Place Details</h3>
-            <button id="closePlaceDetails" class="close-sidebar">&times;</button>
-        </div>
-        
-        <div id="placeDetailsContent" class="place-details-content"></div>
-    </div>
-    
-    <button id="toggleSidebar" class="toggle-sidebar-btn" title="Browse Places">
-        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-        </svg>
-        <span>Places</span>
-    </button>
-    
-    <script src="{{ url_for('static', filename='js/map.js') }}" defer></script>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="{{ url_for('static', filename='js/landing.js') }}" defer></script>
 </body>
 </html>

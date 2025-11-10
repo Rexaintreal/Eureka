@@ -157,7 +157,6 @@ def vote_place(place_id):
             else:
                 place_votes['downvotes'].remove(client_ip)
         else:
-            # New vote
             if vote_type == 'upvote':
                 place_votes['upvotes'].append(client_ip)
             else:

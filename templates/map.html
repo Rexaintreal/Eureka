@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/map.css') }}">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
@@ -209,8 +210,16 @@
             </div>
         </div>
         
-        <div id="placesList" class="places-list">
+        <div id="placesList" class="places-list"></div>
+    </div>
+    
+    <div id="placeDetailsSidebar" class="place-details-sidebar">
+        <div class="sidebar-header">
+            <h3>Place Details</h3>
+            <button id="closePlaceDetails" class="close-sidebar">&times;</button>
         </div>
+        
+        <div id="placeDetailsContent" class="place-details-content"></div>
     </div>
     
     <button id="toggleSidebar" class="toggle-sidebar-btn" title="Browse Places">
