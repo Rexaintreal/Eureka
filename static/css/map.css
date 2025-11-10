@@ -253,20 +253,40 @@
 .leaflet-control-zoom {
     border: none !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
 }
 
+.leaflet-top.leaflet-left {
+    top: 90px !important; 
+    left: 20px !important; 
+}
+
+
 .leaflet-control-zoom a {
-    background: rgba(0, 0, 0, 0.85) !important;
-    backdrop-filter: blur(10px);
-    color: white !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    width: 36px !important;
-    height: 36px !important;
-    line-height: 36px !important;
+    width: 42px !important;
+    height: 42px !important;
+    line-height: 42px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.3rem !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
 .leaflet-control-zoom a:hover {
-    background: rgba(0, 0, 0, 0.95) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    transform: translateY(-1px);
+}
+
+.leaflet-control-zoom a:first-child {
+    border-bottom: none !important;
+}
+
+.leaflet-control-zoom a:last-child {
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
 .custom-marker {
@@ -392,6 +412,16 @@
     font-weight: 500;
     margin-bottom: 0.5rem;
 }
+.form-group select option {
+    background: #000 !important;
+    color: #fff !important;
+}
+.form-group select:hover,
+.form-group select:focus {
+    background: rgba(20, 20, 20, 0.95) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
 
 .form-group input,
 .form-group select,
@@ -407,7 +437,17 @@
     outline: none;
     transition: all 0.3s ease;
 }
-
+.form-group select {
+    background: rgba(0, 0, 0, 0.9) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    appearance: none;
+    outline: none;
+    padding: 10px;
+}
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
