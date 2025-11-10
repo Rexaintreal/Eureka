@@ -19,8 +19,7 @@
       ],
       "contact": "+91-522-2234455",
       "openingHours": "12:00 PM - 11:00 PM",
-      "rating": 4.6,
-      "imageUrl": ""
+      "rating": 4.6
     },
     {
       "id": "place_002",
@@ -41,12 +40,11 @@
       ],
       "contact": "",
       "openingHours": "6:00 AM - 12:00 PM",
-      "rating": 4.8,
-      "imageUrl": ""
+      "rating": 4.8
     },
     {
       "id": "place_003",
-      "name": "Mubeen’s",
+      "name": "Mubeen's",
       "category": "Other",
       "description": "Famous joint for nihari, kulcha, and seekh kebabs. Open till late night in old Lucknow",
       "address": "Akbari Gate Chowk Lucknow",
@@ -63,14 +61,13 @@
       ],
       "contact": "",
       "openingHours": "7:00 AM - 1:00 AM",
-      "rating": 4.7,
-      "imageUrl": ""
+      "rating": 4.7
     },
     {
       "id": "place_004",
-      "name": "Ratti Lal’s Khasta",
+      "name": "Ratti Lal's Khasta",
       "category": "Street Food",
-      "description": "Crispy khasta kachori with aloo and chutney classic Lucknow breakfast spot that’s always full in the morning",
+      "description": "Crispy khasta kachori with aloo and chutney classic Lucknow breakfast spot that's always full in the morning",
       "address": "Naka Hindola Lucknow",
       "latitude": 26.8545,
       "longitude": 80.9264,
@@ -85,8 +82,7 @@
       ],
       "contact": "",
       "openingHours": "7:00 AM - 11:30 AM",
-      "rating": 4.4,
-      "imageUrl": ""
+      "rating": 4.4
     }
   ]
 }

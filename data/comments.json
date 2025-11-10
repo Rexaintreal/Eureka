@@ -13,5 +13,16 @@
       ],
       "flagged": true
     }
+  ],
+  "place_004": [
+    {
+      "id": "comment_00001",
+      "text": "I think it is not here but at the aminabad chowk",
+      "author": "Anonymous",
+      "ip": "127.0.0.1",
+      "timestamp": "2025-11-10T16:23:23.907477",
+      "reports": [],
+      "flagged": false
+    }
   ]
 }

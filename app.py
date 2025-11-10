@@ -132,7 +132,6 @@ def add_place():
             'contact': data.get('contact', ''),
             'openingHours': data.get('openingHours', ''),
             'rating': 0,
-            'imageUrl': data.get('imageUrl', ''),
             'upvotes': 0,
             'downvotes': 0,
             'hidden': False
@@ -336,6 +335,7 @@ def report_comment(comment_id):
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/places/search', methods=['GET'])
 def search_places():
     query = request.args.get('q', '').lower()
