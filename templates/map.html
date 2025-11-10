@@ -99,7 +99,7 @@
             <form id="addPlaceForm" class="place-form">
                 <div class="form-group">
                     <label for="placeName">Place Name *</label>
-                    <input type="text" id="placeName" required placeholder="E.g., Aunt Maria's Cafe">
+                    <input type="text" id="placeName" required >
                 </div>
                 
                 <div class="form-group">
@@ -161,6 +161,23 @@
                     <button type="submit" class="btn-submit">Add Place</button>
                 </div>
             </form>
+        </div>
+    </div>
+    <div id="reportModal" class="modal">
+        <div class="report-modal-content">
+            <div class="modal-header">
+                <h2>Report Comment</h2>
+                <button class="close-modal" onclick="closeReportModal()">&times;</button>
+            </div>
+            
+            <div class="report-modal-body">
+                <p>Are you sure you want to report this comment? Comments with 3 or more reports will be automatically hidden.</p>
+                
+                <div class="report-modal-actions">
+                    <button type="button" class="btn-report-cancel" onclick="closeReportModal()">Cancel</button>
+                    <button type="button" class="btn-report-confirm" onclick="confirmReport(document.getElementById('reportModal').dataset.commentId)">Report</button>
+                </div>
+            </div>
         </div>
     </div>
     

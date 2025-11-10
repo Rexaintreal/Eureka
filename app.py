@@ -7,6 +7,7 @@ app = Flask(__name__)
 
 PLACES_FILE = os.path.join('data', 'places.json')
 VOTES_FILE = os.path.join('data', 'votes.json')
+COMMENTS_FILE = os.path.join('data', 'comments.json')
 
 def read_places():
     try:
@@ -49,6 +50,26 @@ def write_votes(votes_data):
         print(f"Error writing votes: {e}")
         return False
 
+def read_comments():
+    try:
+        if os.path.exists(COMMENTS_FILE):
+            with open(COMMENTS_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        return {}
+    except Exception as e:
+        print(f"Error reading comments: {e}")
+        return {}
+
+def write_comments(comments_data):
+    try:
+        os.makedirs('data', exist_ok=True)
+        with open(COMMENTS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(comments_data, f, indent=2, ensure_ascii=False)
+        return True
+    except Exception as e:
+        print(f"Error writing comments: {e}")
+        return False
+
 def get_client_ip():
     if request.headers.get('X-Forwarded-For'):
         return request.headers.get('X-Forwarded-For').split(',')[0]
@@ -70,6 +91,7 @@ def feedback():
 def get_places():
     places = read_places()
     votes_data = read_votes()
+    comments_data = read_comments()
     for place in places:
         place_id = place['id']
         votes = votes_data['votes'].get(place_id, {'upvotes': [], 'downvotes': []})
@@ -81,8 +103,9 @@ def get_places():
         place['downvotes'] = downvote_count
         place['verified'] = upvote_count >= 3
         place['hidden'] = downvote_count >= 3
-        comments = votes_data['comments'].get(place_id, [])
-        place['commentCount'] = len(comments)
+        place_comments = comments_data.get(place_id, [])
+        visible_comments = [c for c in place_comments if not c.get('flagged', False)]
+        place['commentCount'] = len(visible_comments)
     
     return jsonify({'success': True, 'places': places})
 
@@ -189,7 +212,6 @@ def get_place_details(place_id):
         
         votes_data = read_votes()
         votes = votes_data['votes'].get(place_id, {'upvotes': [], 'downvotes': []})
-        comments = votes_data['comments'].get(place_id, [])
         
         client_ip = get_client_ip()
         user_vote = None
@@ -197,17 +219,112 @@ def get_place_details(place_id):
             user_vote = 'upvote'
         elif client_ip in votes['downvotes']:
             user_vote = 'downvote'
-        
         place['upvotes'] = len(votes['upvotes'])
         place['downvotes'] = len(votes['downvotes'])
         place['verified'] = place['upvotes'] >= 3
         place['hidden'] = place['downvotes'] >= 3
-        place['comments'] = comments
         place['userVote'] = user_vote
+        comments_data = read_comments()
+        place_comments = comments_data.get(place_id, [])
+        visible_comments = []
+        for comment in place_comments:
+            if not comment.get('flagged', False):
+                comment['userReported'] = client_ip in comment.get('reports', [])
+                comment['reportCount'] = len(comment.get('reports', []))
+                visible_comments.append(comment)
+        
+        place['comments'] = visible_comments
+        user_comment_count = sum(1 for c in place_comments if c.get('ip') == client_ip and not c.get('flagged', False))
+        place['canComment'] = user_comment_count < 5
+        place['userCommentCount'] = user_comment_count
         
         return jsonify({'success': True, 'place': place})
         
     except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/places/<place_id>/comments', methods=['POST'])
+def add_comment(place_id):
+    try:
+        data = request.json
+        comment_text = data.get('comment', '').strip()
+        
+        if not comment_text:
+            return jsonify({'success': False, 'error': 'Comment cannot be empty'}), 400
+        
+        if len(comment_text) > 500:
+            return jsonify({'success': False, 'error': 'Comment too long (max 500 characters)'}), 400
+        
+        client_ip = get_client_ip()
+        comments_data = read_comments()
+        
+        if place_id not in comments_data:
+            comments_data[place_id] = []
+        
+        place_comments = comments_data[place_id]
+        user_comment_count = sum(1 for c in place_comments if c.get('ip') == client_ip and not c.get('flagged', False))
+        if user_comment_count >= 5:
+            return jsonify({'success': False, 'error': 'You have reached the maximum of 5 comments for this place'}), 400
+        comment_id = f"comment_{len(place_comments) + 1:05d}"
+        
+        new_comment = {
+            'id': comment_id,
+            'text': comment_text,
+            'author': data.get('author', 'Anonymous'),
+            'ip': client_ip,
+            'timestamp': datetime.now().isoformat(),
+            'reports': [],
+            'flagged': False
+        }
+        
+        place_comments.append(new_comment)
+        
+        if write_comments(comments_data):
+            return_comment = new_comment.copy()
+            return_comment.pop('ip', None)
+            return_comment['userReported'] = False
+            return_comment['reportCount'] = 0
+            
+            return jsonify({'success': True, 'comment': return_comment})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to save comment'}), 500
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/comments/<comment_id>/report', methods=['POST'])
+def report_comment(comment_id):
+    try:
+        client_ip = get_client_ip()
+        comments_data = read_comments()
+        comment_found = False
+        for place_id, place_comments in comments_data.items():
+            for comment in place_comments:
+                if comment['id'] == comment_id:
+                    comment_found = True
+                    if 'reports' not in comment:
+                        comment['reports'] = []
+                    
+                    if client_ip in comment['reports']:
+                        return jsonify({'success': False, 'error': 'You have already reported this comment'}), 400
+                    comment['reports'].append(client_ip)
+                    if len(comment['reports']) >= 3:
+                        comment['flagged'] = True
+                    
+                    if write_comments(comments_data):
+                        return jsonify({
+                            'success': True,
+                            'reportCount': len(comment['reports']),
+                            'flagged': comment.get('flagged', False)
+                        })
+                    else:
+                        return jsonify({'success': False, 'error': 'Failed to save report'}), 500
+        
+        if not comment_found:
+            return jsonify({'success': False, 'error': 'Comment not found'}), 404
+            
+    except Exception as e:
+        print(f"Error in report_comment: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/places/search', methods=['GET'])

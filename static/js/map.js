@@ -127,8 +127,8 @@ function goToMyLocation() {
     loadingIndicator.classList.add('active');
     
     if (!navigator.geolocation) {
-        alert('Geolocation is not supported by your browser');
         loadingIndicator.classList.remove('active');
+        showNotification('Geolocation is not supported by your browser', 'error');
         return;
     }
     
@@ -141,8 +141,8 @@ function goToMyLocation() {
             loadingIndicator.classList.remove('active');
         },
         (error) => {
-            alert('Unable to get your location. Please enable location services.');
             loadingIndicator.classList.remove('active');
+            showNotification('Unable to get your location. Please enable location services.', 'error');
         }
     );
 }
@@ -168,10 +168,10 @@ async function searchLocation(query) {
             marker.bindPopup(`<b>${result.display_name}</b>`).openPopup();
             setTimeout(() => map.removeLayer(marker), 5000);
         } else {
-            alert('Location not found. Try a different search term.');
+            showNotification('Location not found. Try a different search term.', 'error');
         }
     } catch (error) {
-        alert('Error searching for location. Please try again.');
+        showNotification('Error searching for location. Please try again.', 'error');
     } finally {
         loadingIndicator.classList.remove('active');
     }
@@ -328,6 +328,7 @@ function displayPlacesOnMap(places) {
                 <div style="display: flex; gap: 1rem; margin: 0.5rem 0; font-size: 0.8rem;">
                     <span><i class="fas fa-thumbs-up"></i> ${place.upvotes || 0}</span>
                     <span><i class="fas fa-thumbs-down"></i> ${place.downvotes || 0}</span>
+                    <span><i class="fas fa-comments"></i> ${place.commentCount || 0}</span>
                 </div>
                 <button onclick="showPlaceDetails('${place.id}')" style="background: #000; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; margin-top: 0.5rem; width: 100%;">
                     View Details
@@ -363,6 +364,7 @@ function displayPlacesList(places) {
             <div class="place-stats">
                 <span><i class="fas fa-thumbs-up"></i> ${place.upvotes || 0}</span>
                 <span><i class="fas fa-thumbs-down"></i> ${place.downvotes || 0}</span>
+                <span><i class="fas fa-comments"></i> ${place.commentCount || 0}</span>
             </div>
         </div>
     `}).join('');
@@ -413,6 +415,40 @@ function displayPlaceDetails(place) {
     const upvoteActive = place.userVote === 'upvote' ? 'active' : '';
     const downvoteActive = place.userVote === 'downvote' ? 'active' : '';
     
+    const commentsHtml = place.comments && place.comments.length > 0 
+        ? place.comments.map(comment => `
+            <div class="comment-item">
+                <div class="comment-header">
+                    <span class="comment-author">${comment.author}</span>
+                    <span class="comment-time">${formatDate(comment.timestamp)}</span>
+                </div>
+                <p class="comment-text">${escapeHtml(comment.text)}</p>
+                <div class="comment-actions">
+                    <button class="report-btn ${comment.userReported ? 'reported' : ''}" 
+                            onclick="reportComment('${comment.id}')"
+                            ${comment.userReported ? 'disabled' : ''}>
+                        <i class="fas fa-flag"></i> ${comment.userReported ? 'Reported' : 'Report'} 
+                        ${comment.reportCount > 0 ? `(${comment.reportCount})` : ''}
+                    </button>
+                </div>
+            </div>
+        `).join('')
+        : '<p class="no-comments">No comments yet. Be the first to share your experience!</p>';
+    
+    const commentFormHtml = place.canComment 
+        ? `
+        <div class="comment-form">
+            <h4>Add Your Comment ${place.userCommentCount > 0 ? `(${place.userCommentCount}/5)` : ''}</h4>
+            <input type="text" id="commentAuthor" placeholder="Your name (optional)" maxlength="50">
+            <textarea id="commentText" placeholder="Share your experience..." maxlength="500" rows="3"></textarea>
+            <div class="comment-form-footer">
+                <span class="char-count"><span id="charCount">0</span>/500</span>
+                <button class="btn-submit-comment" onclick="submitComment()">Post Comment</button>
+            </div>
+        </div>
+        `
+        : '<p class="comment-limit-reached">You have reached the maximum of 5 comments for this place.</p>';
+    
     detailsContent.innerHTML = `
         <div class="place-detail-header">
             <h2>${place.name}</h2>
@@ -444,7 +480,125 @@ function displayPlaceDetails(place) {
                 <i class="fas fa-thumbs-down"></i> Downvote (${place.downvotes || 0})
             </button>
         </div>
+        
+        <div class="comments-section">
+            <h3>Comments (${place.comments ? place.comments.length : 0})</h3>
+            ${commentFormHtml}
+            <div class="comments-list">
+                ${commentsHtml}
+            </div>
+        </div>
     `;
+    
+    const commentTextArea = document.getElementById('commentText');
+    if (commentTextArea) {
+        commentTextArea.addEventListener('input', (e) => {
+            document.getElementById('charCount').textContent = e.target.value.length;
+        });
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+async function submitComment() {
+    const commentText = document.getElementById('commentText').value.trim();
+    const commentAuthor = document.getElementById('commentAuthor').value.trim() || 'Anonymous';
+    
+    if (!commentText) {
+        alert('Please enter a comment');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/places/${selectedPlaceId}/comments`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                comment: commentText,
+                author: commentAuthor
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showPlaceDetails(selectedPlaceId);
+            loadPlaces(); 
+        } else {
+            alert('Error posting comment: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error submitting comment:', error);
+        alert('Error posting comment');
+    }
+}
+
+async function reportComment(commentId) {
+    showReportModal(commentId);
+}
+
+async function confirmReport(commentId) {
+    try {
+        const response = await fetch(`/api/comments/${commentId}/report`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await response.json();
+        
+        closeReportModal();
+        
+        if (data.success) {
+            if (data.flagged) {
+                showNotification('Comment has been flagged and will no longer be visible', 'success');
+            } else {
+                showNotification('Comment reported successfully', 'success');
+            }
+            showPlaceDetails(selectedPlaceId);
+        } else {
+            showNotification('Error: ' + data.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error reporting comment:', error);
+        closeReportModal();
+        showNotification('Error reporting comment', 'error');
+    }
+}
+
+function showReportModal(commentId) {
+    const modal = document.getElementById('reportModal');
+    if (modal) {
+        modal.dataset.commentId = commentId;
+        modal.classList.add('active');
+    }
+}
+
+function closeReportModal() {
+    const modal = document.getElementById('reportModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        <span>${message}</span>
+    `;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => notification.classList.add('show'), 10);
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }
 
 async function votePlace(placeId, voteType) {
@@ -533,6 +687,10 @@ async function submitPlace(formData) {
 
 window.showPlaceDetails = showPlaceDetails;
 window.votePlace = votePlace;
+window.submitComment = submitComment;
+window.reportComment = reportComment;
+window.confirmReport = confirmReport;
+window.closeReportModal = closeReportModal;
 
 document.addEventListener('DOMContentLoaded', () => {
     initMap();
