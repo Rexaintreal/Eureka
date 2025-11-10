@@ -411,7 +411,11 @@ function displayPlaceDetails(place) {
     
     const verifiedBadge = place.verified ? '<span class="verified-badge-large"><i class="fas fa-check-circle"></i> Verified Place</span>' : '';
     const hiddenBadge = place.hidden ? '<span class="hidden-badge-large"><i class="fas fa-exclamation-triangle"></i> Needs Verification</span>' : '';
-    
+    const tagsHtml = place.tags && place.tags.length > 0 
+    ? `<div class="place-tags">
+        ${place.tags.map(tag => `<span class="tag-badge">${tag}</span>`).join('')}
+       </div>`
+    : '';
     const upvoteActive = place.userVote === 'upvote' ? 'active' : '';
     const downvoteActive = place.userVote === 'downvote' ? 'active' : '';
     
@@ -456,7 +460,7 @@ function displayPlaceDetails(place) {
         </div>
         
         <div class="place-detail-category">${place.category}</div>
-        
+        ${tagsHtml}
         <div class="place-detail-description">
             <p>${place.description}</p>
         </div>
@@ -517,6 +521,8 @@ function openEditModal(placeId) {
     document.getElementById('editPlaceContact').value = place.contact || '';
     document.getElementById('editPlaceHours').value = place.openingHours || '';
     
+    const tagsString = place.tags && place.tags.length > 0 ? place.tags.join(', ') : '';
+    document.getElementById('editPlaceTags').value = tagsString;
     document.getElementById('editPlaceModal').classList.add('active');
 }
 
@@ -793,6 +799,10 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             
             const placeId = document.getElementById('editPlaceId').value;
+            const tagsInput = document.getElementById('editPlaceTags').value;
+            const tagsArray = tagsInput 
+                ? tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
+                : [];
             const formData = {
                 name: document.getElementById('editPlaceName').value,
                 category: document.getElementById('editPlaceCategory').value,
@@ -801,7 +811,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 latitude: document.getElementById('editPlaceLatitude').value,
                 longitude: document.getElementById('editPlaceLongitude').value,
                 contact: document.getElementById('editPlaceContact').value,
-                openingHours: document.getElementById('editPlaceHours').value
+                openingHours: document.getElementById('editPlaceHours').value,
+                tags: tagsArray
             };
             
             submitEditPlace(formData, placeId);
@@ -888,7 +899,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addPlaceForm) {
         addPlaceForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            
+            const tagsInput = document.getElementById('placeTags').value;
+            const tagsArray = tagsInput 
+                ? tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
+                : [];
             const formData = {
                 name: document.getElementById('placeName').value,
                 category: document.getElementById('placeCategory').value,
@@ -899,7 +913,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 contact: document.getElementById('placeContact').value,
                 openingHours: document.getElementById('placeHours').value,
                 addedBy: document.getElementById('placeAddedBy').value || 'Anonymous',
-                tags: []
+                tags: tagsArray
             };
             
             submitPlace(formData);

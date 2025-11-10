@@ -1466,3 +1466,56 @@
     border-color: rgba(33, 150, 243, 0.5);
     transform: translateY(-1px);
 }
+.place-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.tag-badge {
+    display: inline-block;
+    background: rgba(255, 68, 68, 0.15);
+    border: 1px solid rgba(255, 68, 68, 0.3);
+    color: rgba(255, 255, 255, 0.9);
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.3s ease;
+}
+
+.tag-badge:hover {
+    background: rgba(255, 68, 68, 0.25);
+    border-color: rgba(255, 68, 68, 0.5);
+    transform: translateY(-1px);
+}
+
+.form-help-text {
+    display: block;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.8rem;
+    margin-top: 0.35rem;
+    font-style: italic;
+}
+
+.place-card .place-tags {
+    margin-top: 0.5rem;
+}
+
+.place-card .tag-badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.6rem;
+}
+
+@media (max-width: 768px) {
+    .place-tags {
+        gap: 0.4rem;
+    }
+    
+    .tag-badge {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.65rem;
+    }
+}

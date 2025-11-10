@@ -164,12 +164,12 @@ def update_place(place_id):
         places[place_index]['longitude'] = float(data.get('longitude', places[place_index]['longitude']))
         places[place_index]['contact'] = data.get('contact', places[place_index].get('contact', ''))
         places[place_index]['openingHours'] = data.get('openingHours', places[place_index].get('openingHours', ''))
-        
+        if 'tags' in data:
+            places[place_index]['tags'] = data.get('tags', [])
         if write_places(places):
             return jsonify({'success': True, 'place': places[place_index]})
         else:
-            return jsonify({'success': False, 'error': 'Failed to save changes'}), 500
-            
+            return jsonify({'success': False, 'error': 'Failed to save changes'}), 500      
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
