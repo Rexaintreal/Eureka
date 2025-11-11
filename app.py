@@ -8,6 +8,7 @@ app = Flask(__name__)
 PLACES_FILE = os.path.join('data', 'places.json')
 VOTES_FILE = os.path.join('data', 'votes.json')
 COMMENTS_FILE = os.path.join('data', 'comments.json')
+FEEDBACK_FILE = os.path.join('data', 'feedback.json')
 
 def read_places():
     try:
@@ -70,6 +71,26 @@ def write_comments(comments_data):
         print(f"Error writing comments: {e}")
         return False
 
+def read_feedback():
+    try:
+        if os.path.exists(FEEDBACK_FILE):
+            with open(FEEDBACK_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        return {'feedback': []}
+    except Exception as e:
+        print(f"Error reading feedback: {e}")
+        return {'feedback': []}
+
+def write_feedback(feedback_data):
+    try:
+        os.makedirs('data', exist_ok=True)
+        with open(FEEDBACK_FILE, 'w', encoding='utf-8') as f:
+            json.dump(feedback_data, f, indent=2, ensure_ascii=False)
+        return True
+    except Exception as e:
+        print(f"Error writing feedback: {e}")
+        return False
+
 def get_client_ip():
     if request.headers.get('X-Forwarded-For'):
         return request.headers.get('X-Forwarded-For').split(',')[0]
@@ -86,6 +107,54 @@ def map_view():
 @app.route('/feedback')
 def feedback():
     return render_template('feedback.html')
+
+@app.route('/api/feedback', methods=['POST'])
+def submit_feedback():
+    try:
+        data = request.json
+        feedback_text = data.get('feedback', '').strip()
+        rating = data.get('rating')
+        email = data.get('email', '').strip()
+        
+        if not feedback_text:
+            return jsonify({'success': False, 'error': 'Feedback cannot be empty'}), 400
+        
+        if len(feedback_text) > 1000:
+            return jsonify({'success': False, 'error': 'Feedback too long (max 1000 characters)'}), 400
+        
+        if rating is not None and (rating < 1 or rating > 5):
+            return jsonify({'success': False, 'error': 'Invalid rating'}), 400
+        
+        client_ip = get_client_ip()
+        feedback_data = read_feedback()
+        
+        feedback_id = f"feedback_{len(feedback_data['feedback']) + 1:05d}"
+        
+        new_feedback = {
+            'id': feedback_id,
+            'feedback': feedback_text,
+            'rating': rating,
+            'email': email if email else None,
+            'ip': client_ip,
+            'timestamp': datetime.now().isoformat(),
+            'status': 'new'
+        }
+        
+        feedback_data['feedback'].append(new_feedback)
+        
+        if write_feedback(feedback_data):
+            return_feedback = new_feedback.copy()
+            return_feedback.pop('ip', None)
+            
+            return jsonify({'success': True, 'feedback': return_feedback})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to save feedback'}), 500
+            
+    except Exception as e:
+        print(f"Error in submit_feedback: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/places', methods=['GET'])
 def get_places():
