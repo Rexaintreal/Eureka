@@ -26,9 +26,9 @@ Or you could actually try it VISIT THE [WEBSITE](https://eureka.pythonanywhere.c
 
 ## About
 
-Every city has that amazing local shop where people enjoy everyday but it's not on google maps - maybe the shop owners are not aware or just not interested in adding it there. But we as people who love the food they make or the overall vibe must come forward to share the spots to other people, maybe visitors etc. (DONT GATEKEEP IT LET EVERYONE EXPERIENCE THE JOY OF GREAT FOOOOOD) 
+Every city has that amazing local shop where people enjoy everyday but its not on google maps maybe the shop owners are not aware or just not interested in adding it there. But we as people who love the food they make or the overall vibe must come forward to share the spots to other people, maybe visitors etc. (DONT GATEKEEP IT LET EVERYONE EXPERIENCE THE JOY OF GREAT FOOOOOD) 
 
-I built Eureka for [Foodie](https://foodie.hackclub.com/) YSWS - a map where people can mark their underrated spots!
+I built Eureka for [Foodie](https://foodie.hackclub.com/) YSWS a map where people can mark their underrated spots
 
 ---
 
