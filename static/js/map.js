@@ -401,6 +401,12 @@ async function showPlaceDetails(placeId) {
     }
 }
 
+function openGoogleMaps(latitude, longitude, placeName) {
+    const encodedPlaceName = encodeURIComponent(placeName);
+    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}&destination_place_id=${encodedPlaceName}`;
+    window.open(googleMapsUrl, '_blank');
+}
+
 function displayPlaceDetails(place) {
     const detailsContent = document.getElementById('placeDetailsContent');
     
@@ -476,6 +482,9 @@ function displayPlaceDetails(place) {
             </div>
         </div>
         <div class="place-actions" style="margin: 1.5rem 0;">
+            <button class="btn-get-directions" onclick="openGoogleMaps(${place.latitude}, ${place.longitude}, '${escapeHtml(place.name)}')">
+                <i class="fas fa-directions"></i> Get Directions
+            </button>
             <button class="btn-edit-place" onclick="openEditModal('${place.id}')">
                 <i class="fas fa-edit"></i> Edit Place
             </button>
@@ -558,6 +567,7 @@ async function submitEditPlace(formData, placeId) {
 }
 
 window.openEditModal = openEditModal;
+window.openGoogleMaps = openGoogleMaps;
 
 function escapeHtml(text) {
     const div = document.createElement('div');
