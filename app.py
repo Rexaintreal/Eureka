@@ -200,7 +200,7 @@ def add_place():
             'tags': data.get('tags', []),
             'contact': data.get('contact', ''),
             'openingHours': data.get('openingHours', ''),
-            'rating': 0,
+            'rating': int(data.get('rating', 0)),
             'upvotes': 0,
             'downvotes': 0,
             'hidden': False
@@ -235,6 +235,8 @@ def update_place(place_id):
         places[place_index]['openingHours'] = data.get('openingHours', places[place_index].get('openingHours', ''))
         if 'tags' in data:
             places[place_index]['tags'] = data.get('tags', [])
+        if 'rating' in data:
+            places[place_index]['rating'] = int(data.get('rating', places[place_index].get('rating', 0)))
         if write_places(places):
             return jsonify({'success': True, 'place': places[place_index]})
         else:

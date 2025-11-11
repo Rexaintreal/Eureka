@@ -147,6 +147,26 @@ function goToMyLocation() {
     );
 }
 
+function generateStarRating(rating) {
+    if (!rating || rating === 0) return '';
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+    let starsHtml = '<div class="star-rating">';
+    for (let i = 0; i < fullStars; i++) {
+        starsHtml += '<i class="fas fa-star"></i>';
+    }
+    if (hasHalfStar) {
+        starsHtml += '<i class="fas fa-star-half-alt"></i>';
+    }
+    for (let i = 0; i < emptyStars; i++) {
+        starsHtml += '<i class="far fa-star"></i>';
+    }
+    starsHtml += `<span class="rating-value">${rating.toFixed(1)}</span>`;
+    starsHtml += '</div>';
+    return starsHtml;
+}
+
 async function searchLocation(query) {
     const loadingIndicator = document.getElementById('loadingIndicator');
     loadingIndicator.classList.add('active');
@@ -316,10 +336,18 @@ function displayPlacesOnMap(places) {
         const verifiedBadge = place.verified ? '<span style="color: #4CAF50; font-weight: bold;"><i class="fas fa-check-circle"></i> Verified</span>' : '';
         const hiddenBadge = place.hidden ? '<span style="color: #808080; font-weight: bold;"><i class="fas fa-exclamation-triangle"></i> Unverified</span>' : '';
         
+        const ratingHtml = place.rating && place.rating > 0 
+            ? `<div class="popup-rating">
+                <i class="fas fa-star"></i>
+                <span class="rating-text">${place.rating.toFixed(1)}</span>
+               </div>`
+            : '';
+        
         const popupContent = `
             <div style="font-family: Inter, sans-serif; min-width: 200px;">
                 <h3 style="margin: 0 0 0.5rem 0; font-size: 1rem; color: #000;">${place.name}</h3>
                 ${verifiedBadge || hiddenBadge ? `<p style="margin: 0 0 0.5rem 0;">${verifiedBadge}${hiddenBadge}</p>` : ''}
+                ${ratingHtml}
                 <p style="margin: 0 0 0.5rem 0; font-size: 0.85rem; color: #666;">${place.description}</p>
                 <p style="margin: 0 0 0.5rem 0; font-size: 0.8rem; color: #999;">
                     <strong>Category:</strong> ${place.category}<br>
@@ -353,6 +381,13 @@ function displayPlacesList(places) {
         const verifiedBadge = place.verified ? '<span class="verified-badge"><i class="fas fa-check-circle"></i></span>' : '';
         const hiddenClass = place.hidden ? 'place-hidden' : '';
         
+        const ratingHtml = place.rating && place.rating > 0 
+            ? `<div class="place-rating">
+                <i class="fas fa-star"></i>
+                <span class="rating-text">${place.rating.toFixed(1)}</span>
+               </div>`
+            : '';
+        
         return `
         <div class="place-card ${hiddenClass}" data-place-id="${place.id}">
             <div class="place-card-header">
@@ -361,6 +396,7 @@ function displayPlacesList(places) {
             </div>
             <p>${place.description}</p>
             <p class="place-address"><i class="fas fa-map-marker-alt"></i> ${place.address}</p>
+            ${ratingHtml}
             <div class="place-stats">
                 <span><i class="fas fa-thumbs-up"></i> ${place.upvotes || 0}</span>
                 <span><i class="fas fa-thumbs-down"></i> ${place.downvotes || 0}</span>
@@ -422,6 +458,7 @@ function displayPlaceDetails(place) {
         ${place.tags.map(tag => `<span class="tag-badge">${tag}</span>`).join('')}
        </div>`
     : '';
+    const ratingHtml = generateStarRating(place.rating);
     const upvoteActive = place.userVote === 'upvote' ? 'active' : '';
     const downvoteActive = place.userVote === 'downvote' ? 'active' : '';
     
@@ -467,6 +504,12 @@ function displayPlaceDetails(place) {
         
         <div class="place-detail-category">${place.category}</div>
         ${tagsHtml}
+        
+        ${ratingHtml ? 
+            `<div class="place-rating-section">${ratingHtml}</div>` : 
+            `<div class="place-rating-section"><span class="no-rating"><i class="far fa-star"></i> Not yet rated</span></div>`
+        }
+        
         <div class="place-detail-description">
             <p>${place.description}</p>
         </div>
@@ -516,6 +559,57 @@ function displayPlaceDetails(place) {
     }
 }
 
+function initializeStarRating(containerId, inputId, initialValue = 0) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    const stars = container.querySelectorAll('i');
+    const input = document.getElementById(inputId);
+    const display = container.nextElementSibling;
+    
+    let currentRating = initialValue;
+    
+    updateStars(currentRating);
+    
+    function updateStars(rating) {
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.remove('far');
+                star.classList.add('fas', 'active');
+            } else {
+                star.classList.remove('fas', 'active');
+                star.classList.add('far');
+            }
+        });
+        
+        if (input) input.value = rating;
+        if (display) display.textContent = rating > 0 ? `${rating}.0` : 'Not rated';
+    }
+    
+    stars.forEach((star, index) => {
+        star.addEventListener('mouseenter', () => {
+            stars.forEach((s, i) => {
+                if (i <= index) {
+                    s.classList.remove('far');
+                    s.classList.add('fas');
+                } else {
+                    s.classList.remove('fas');
+                    s.classList.add('far');
+                }
+            });
+        });
+        
+        star.addEventListener('click', () => {
+            currentRating = index + 1;
+            updateStars(currentRating);
+        });
+    });
+    
+    container.addEventListener('mouseleave', () => {
+        updateStars(currentRating);
+    });
+}
+
 function openEditModal(placeId) {
     const place = placesData.find(p => p.id === placeId);
     if (!place) return;
@@ -529,9 +623,13 @@ function openEditModal(placeId) {
     document.getElementById('editPlaceLongitude').value = place.longitude;
     document.getElementById('editPlaceContact').value = place.contact || '';
     document.getElementById('editPlaceHours').value = place.openingHours || '';
-    
+
     const tagsString = place.tags && place.tags.length > 0 ? place.tags.join(', ') : '';
     document.getElementById('editPlaceTags').value = tagsString;
+    const rating = place.rating || 0;
+    document.getElementById('editPlaceRating').value = rating;
+    initializeStarRating('editStarInput', 'editPlaceRating', rating);
+    
     document.getElementById('editPlaceModal').classList.add('active');
 }
 
@@ -658,6 +756,24 @@ function closeReportModal() {
     }
 }
 
+function showSuccessModal(message) {
+    const modal = document.getElementById('successModal');
+    const messageText = document.getElementById('successMessageText');
+    if (modal && messageText) {
+        messageText.textContent = message;
+        modal.classList.add('active');
+    }
+}
+
+function closeSuccessModal() {
+    const modal = document.getElementById('successModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+
+window.closeSuccessModal = closeSuccessModal;
+
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
@@ -744,9 +860,9 @@ async function submitPlace(formData) {
         const data = await response.json();
         
         if (data.success) {
-            alert('Place added successfully! Thank you for contributing!');
             document.getElementById('addPlaceModal').classList.remove('active');
             document.getElementById('addPlaceForm').reset();
+            showSuccessModal('Place added successfully! Thank you for contributing!');
             loadPlaces();
         } else {
             alert('Error adding place: ' + data.error);
@@ -765,6 +881,7 @@ window.submitComment = submitComment;
 window.reportComment = reportComment;
 window.confirmReport = confirmReport;
 window.closeReportModal = closeReportModal;
+initializeStarRating('addStarInput', 'placeRating', 0);
 
 document.addEventListener('DOMContentLoaded', () => {
     initMap();
@@ -813,6 +930,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const tagsArray = tagsInput 
                 ? tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
                 : [];
+            const rating = document.getElementById('editPlaceRating').value || 0;
             const formData = {
                 name: document.getElementById('editPlaceName').value,
                 category: document.getElementById('editPlaceCategory').value,
@@ -822,7 +940,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 longitude: document.getElementById('editPlaceLongitude').value,
                 contact: document.getElementById('editPlaceContact').value,
                 openingHours: document.getElementById('editPlaceHours').value,
-                tags: tagsArray
+                tags: tagsArray,
+                rating: rating
             };
             
             submitEditPlace(formData, placeId);
@@ -913,6 +1032,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const tagsArray = tagsInput 
                 ? tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
                 : [];
+            const rating = document.getElementById('placeRating').value || 0;
             const formData = {
                 name: document.getElementById('placeName').value,
                 category: document.getElementById('placeCategory').value,
@@ -923,7 +1043,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 contact: document.getElementById('placeContact').value,
                 openingHours: document.getElementById('placeHours').value,
                 addedBy: document.getElementById('placeAddedBy').value || 'Anonymous',
-                tags: tagsArray
+                tags: tagsArray,
+                rating: rating 
             };
             
             submitPlace(formData);
@@ -961,5 +1082,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    
+    const successModal = document.getElementById('successModal');
+    const closeSuccessModalBtn = document.getElementById('closeSuccessModalBtn');
+
+    if (closeSuccessModalBtn) {
+        closeSuccessModalBtn.addEventListener('click', closeSuccessModal);
+    }
+
+    if (successModal) {
+        successModal.addEventListener('click', (e) => {
+            if (e.target.id === 'successModal') {
+                closeSuccessModal();
+            }
+        });
+    }
 });

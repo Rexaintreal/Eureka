@@ -150,7 +150,23 @@
                     <label for="placeHours">Opening Hours (Optional)</label>
                     <input type="text" id="placeHours" placeholder="9:00 AM - 10:00 PM">
                 </div>
-                
+                <div class="form-group">
+                    <label for="placeRating">Rating (optional)</label>
+                    <div class="rating-input-group">
+                        <div class="star-input-container">
+                            <div class="star-input" id="addStarInput">
+                                <i class="far fa-star"></i>
+                                <i class="far fa-star"></i>
+                                <i class="far fa-star"></i>
+                                <i class="far fa-star"></i>
+                                <i class="far fa-star"></i>
+                            </div>
+                            <span class="rating-display">Not rated</span>
+                        </div>
+                        <input type="hidden" id="placeRating" name="rating" value="0">
+                        <small class="form-help-text">Click on the stars to rate this place (1-5 stars)</small>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label for="placeAddedBy">Your Name (Optional)</label>
                     <input type="text" id="placeAddedBy" placeholder="Anonymous">
@@ -231,6 +247,23 @@
                     <input type="text" id="editPlaceHours">
                 </div>
                 <div class="form-group">
+                    <label for="editPlaceRating">Rating (optional)</label>
+                    <div class="rating-input-group">
+                        <div class="star-input-container">
+                            <div class="star-input" id="editStarInput">
+                                <i class="far fa-star"></i>
+                                <i class="far fa-star"></i>
+                                <i class="far fa-star"></i>
+                                <i class="far fa-star"></i>
+                                <i class="far fa-star"></i>
+                            </div>
+                            <span class="rating-display">Not rated</span>
+                        </div>
+                        <input type="hidden" id="editPlaceRating" name="rating" value="0">
+                        <small class="form-help-text">Click on the stars to rate this place (1-5 stars)</small>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label for="editPlaceTags">Tags (Optional)</label>
                     <input 
                         type="text" 
@@ -262,7 +295,20 @@
             </div>
         </div>
     </div>
-    
+    <div id="successModal" class="modal">
+        <div class="success-modal-content">
+            <div class="success-modal-header">
+                <i class="fas fa-check-circle"></i>
+                <h2>Success!</h2>
+            </div>
+            <div class="success-modal-body">
+                <p id="successMessageText">Your action was successful.</p>
+                <div class="success-modal-actions">
+                    <button type="button" class="btn-success-ok" id="closeSuccessModalBtn">Got it!</button>
+                </div>
+            </div>
+        </div>
+    </div>    
     <div id="placesSidebar" class="places-sidebar">
         <div class="sidebar-header">
             <h3>Discover Places</h3>
