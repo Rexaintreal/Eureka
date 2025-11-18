@@ -20,7 +20,7 @@ Eureka is a project made by a person who loves street food for the people who lo
 
 Google Drive Link for the Demo Video [LINK](https://drive.google.com/file/d/1uRMkwRlWe0LNMcBSysc4HvF9rNREk_tQ/view?usp=drive_link)
 
-Or you could actually try it VISIT THE [WEBSITE](https://eureka.pythonanywhere.com/) now!
+Or you could actually try it VISIT THE [WEBSITE](https://eureka.pythonanywhere.com/) now!  **There seems to be an Cloudflare Outage or maybe some internal stuff at Pythonanywhere so the south asian and the american servers are not UP rn if you can't access this please contact me or use TOR/VPN)**
 
 ---
 
